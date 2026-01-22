@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../products/data/models/product_model.dart';
 import '../pages/product_detail_page.dart';
+import '../../../core/widgets/shimmer_loader.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -30,7 +31,7 @@ class ProductCard extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: const Color.fromRGBO(128, 128, 128, 0.1),
               spreadRadius: 1,
               blurRadius: 4,
               offset: const Offset(0, 2),
@@ -60,8 +61,8 @@ class ProductCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: "https://mamunuiux.com/flutter_task/${product.images.first}",
                             fit: BoxFit.scaleDown,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(),
+                            placeholder: (context, url) => Center(
+                              child: ShimmerLoader.rect(height: 150, width: double.infinity),
                             ),
                             errorWidget: (context, url, error) => const Icon(
                               Icons.image_not_supported,

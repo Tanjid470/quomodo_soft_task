@@ -9,6 +9,7 @@ import '../../products/presentation/bloc/product_event.dart';
 import '../../products/presentation/bloc/product_state.dart';
 import '../widgets/product_card.dart';
 import 'all_products_page.dart';
+import '../../../core/widgets/shimmer_loader.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,6 +23,9 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0;
   String? _selectedCategoryId;
+  // Cache last successful load so UI can show data when bloc is in other states
+  List<ProductModel> _cachedProducts = [];
+  List<CategoryModel> _cachedCategories = [];
 
   @override
   void initState() {
@@ -83,7 +87,7 @@ class _HomePageState extends State<HomePage> {
               child: BlocBuilder<ProductBloc, ProductState>(
                 builder: (context, state) {
                   if (state is ProductLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: ShimmerLoader.rect(width: double.infinity, height: 300));
                   }
 
                   if (state is ProductError) {
@@ -118,12 +122,19 @@ class _HomePageState extends State<HomePage> {
                   if (state is ProductLoaded) {
                     products = state.products;
                     categories = state.categories;
+                    // update cache
+                    _cachedProducts = List<ProductModel>.from(state.products);
+                    _cachedCategories = List<CategoryModel>.from(state.categories);
                   } else if (state is ProductSearchLoaded) {
                     products = state.products;
+                    // keep categories from cache while searching
+                    categories = _cachedCategories;
+                    // don't overwrite cache with search results
                   } else if (state is ProductDetailLoaded) {
-
-                    products = [];
-                    categories = [];
+                    // when viewing product detail state is ProductDetailLoaded in the bloc.
+                    // Keep showing the last cached products/categories instead of clearing them.
+                    products = _cachedProducts;
+                    categories = _cachedCategories;
                   }
 
                   return RefreshIndicator(
@@ -345,8 +356,7 @@ class _HomePageState extends State<HomePage> {
                 imageUrl:
                 "https://mamunuiux.com/flutter_task/${category.image}",
                 fit: BoxFit.scaleDown,
-                placeholder: (_, __) =>
-                const CircularProgressIndicator(strokeWidth: 2),
+                placeholder: (_, __) => Center(child: ShimmerLoader.circle(size: 36)),
                 errorWidget: (_, __, ___) =>
                 const Icon(Icons.image_not_supported, color: Colors.white),
               ),

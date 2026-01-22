@@ -6,6 +6,7 @@ import '../../products/presentation/bloc/product_bloc.dart';
 import '../../products/presentation/bloc/product_event.dart';
 import '../../products/presentation/bloc/product_state.dart';
 import '../widgets/product_card.dart';
+import '../../../core/widgets/shimmer_loader.dart';
 
 class AllProductsPage extends StatefulWidget {
   const AllProductsPage({super.key});
@@ -88,7 +89,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
             child: BlocBuilder<ProductBloc, ProductState>(
               builder: (context, state) {
                 if (state is ProductLoading || state is ProductSearching) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: ShimmerLoader.rect(width: double.infinity, height: 300));
                 }
 
                 if (state is ProductError) {

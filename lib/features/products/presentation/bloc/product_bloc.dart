@@ -91,16 +91,25 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Emitter<ProductState> emit,
   ) async {
     try {
-      emit(ProductLoading());
-      final products = await repository.getProductsByCategory(event.categoryId);
-
+      // Preserve existing categories so the UI can keep showing them
       List<CategoryModel> categories = [];
       if (state is ProductLoaded) {
-        categories = (state as ProductLoaded).categories;
-      } else {
-        categories = await repository.getCategories();
+        categories = List<CategoryModel>.from((state as ProductLoaded).categories);
       }
 
+      // Fetch filtered products without switching the UI to ProductLoading()
+      final products = await repository.getProductsByCategory(event.categoryId);
+
+      // If we didn't have categories cached, try fetching them
+      if (categories.isEmpty) {
+        try {
+          categories = await repository.getCategories();
+        } catch (_) {
+          // If fetching categories fails, keep categories empty but don't crash
+        }
+      }
+
+      // Emit ProductLoaded with new products and preserved categories
       emit(ProductLoaded(
         products: products,
         categories: categories,

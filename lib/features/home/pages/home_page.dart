@@ -21,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onRefresh() async {
     _loadProducts();
-    // Wait for the bloc to emit a new state
+
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
@@ -51,7 +52,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onCategoryTap(String categoryId) {
-    context.read<ProductBloc>().add(FilterProductsByCategory(categoryId));
+    setState(() {
+      if (_selectedCategoryId == categoryId) {
+        _selectedCategoryId = null; // clear selection
+      } else {
+        _selectedCategoryId = categoryId;
+      }
+    });
+
+    if (_selectedCategoryId == null) {
+      context.read<ProductBloc>().add(const LoadProducts());
+    } else {
+      context.read<ProductBloc>().add(FilterProductsByCategory(_selectedCategoryId!));
+    }
   }
 
   @override
@@ -108,8 +121,7 @@ class _HomePageState extends State<HomePage> {
                   } else if (state is ProductSearchLoaded) {
                     products = state.products;
                   } else if (state is ProductDetailLoaded) {
-                    // Don't reload - just show empty list on home when detail is active
-                    // Products will reload when user navigates back via pull-to-refresh or init
+
                     products = [];
                     categories = [];
                   }
@@ -161,9 +173,10 @@ class _HomePageState extends State<HomePage> {
                                       itemCount:  categories.length,
                                       itemBuilder: (context, index) {
                                         final category = categories[index];
+                                        final isSelected = _selectedCategoryId == category.id;
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                          child: _buildCategoryItem(category),
+                                          child: _buildCategoryItem(category, isSelected: isSelected),
                                         );
                                       },
                                     ),
@@ -312,7 +325,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryItem(CategoryModel category) {
+  Widget _buildCategoryItem(CategoryModel category, {bool isSelected = false}) {
     return GestureDetector(
       onTap: () => _onCategoryTap(category.id),
       child: Column(
@@ -322,8 +335,9 @@ class _HomePageState extends State<HomePage> {
         height: 60,
         padding: const EdgeInsets.all(12),
         decoration:  BoxDecoration(
-          color: AppColors.primaryLight,
+          color: isSelected ? AppColors.primary : AppColors.primaryLight,
           shape: BoxShape.circle,
+          border: isSelected ? Border.all(color: AppColors.primaryDark, width: 2) : null,
         ),
         child: category.image?.isNotEmpty == true
             ? ClipRRect(
@@ -346,7 +360,7 @@ class _HomePageState extends State<HomePage> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
           ),
         ],
       ),

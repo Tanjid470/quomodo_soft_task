@@ -52,6 +52,9 @@ class _HomePageState extends State<HomePage> {
   void _onSearch(String query) {
     if (query.isNotEmpty) {
       context.read<ProductBloc>().add(SearchProducts(query));
+    } else {
+      // clear search -> restore previous product list
+      context.read<ProductBloc>().add(const ClearSearch());
     }
   }
 
@@ -86,7 +89,20 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: BlocBuilder<ProductBloc, ProductState>(
                 builder: (context, state) {
-                  if (state is ProductLoading) {
+                  final bool isSearchingState = state is ProductSearching;
+                  final bool isLoadingState = state is ProductLoading;
+
+                  // If we're actively searching, show the shimmer loader.
+                  if (isSearchingState) {
+                    return Center(child: ShimmerLoader.rect(width: double.infinity, height: 300));
+                  }
+
+                  // If loading but the search field is empty and we have cached products,
+                  // show cached products immediately while the background reload runs.
+                  if (isLoadingState && _searchController.text.isEmpty && _cachedProducts.isNotEmpty) {
+                    // use cached products and categories
+                    // create a faux ProductLoaded view by setting local lists below
+                  } else if (isLoadingState) {
                     return Center(child: ShimmerLoader.rect(width: double.infinity, height: 300));
                   }
 
@@ -133,6 +149,10 @@ class _HomePageState extends State<HomePage> {
                   } else if (state is ProductDetailLoaded) {
                     // when viewing product detail state is ProductDetailLoaded in the bloc.
                     // Keep showing the last cached products/categories instead of clearing them.
+                    products = _cachedProducts;
+                    categories = _cachedCategories;
+                  } else if (isLoadingState && _searchController.text.isEmpty && _cachedProducts.isNotEmpty) {
+                    // Use cache while loading
                     products = _cachedProducts;
                     categories = _cachedCategories;
                   }
@@ -317,7 +337,7 @@ class _HomePageState extends State<HomePage> {
             ),
             child: TextField(
               controller: _searchController,
-              onSubmitted: _onSearch,
+              onChanged: _onSearch,
               decoration: const InputDecoration(
                 hintText: 'Search products',
                 hintStyle: TextStyle(color: AppColors.lightGrey),

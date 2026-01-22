@@ -69,7 +69,29 @@ class ProductApiService {
 
   /// Get product by slug
   Future<ProductModel?> getProductById(String slug) async {
-    final response = await _apiClient.get(ApiConstants.getProductById(slug));
+    // If a full URL was passed accidentally, extract the last path segment as slug
+    try {
+      final uri = Uri.tryParse(slug);
+      if (uri != null && uri.path.isNotEmpty && (uri.hasScheme || slug.contains('/product/'))) {
+        // Extract last segment after '/product/' if present, otherwise last path segment
+        final segments = uri.path.split('/');
+        if (segments.isNotEmpty) {
+          final idx = segments.indexWhere((s) => s == 'product');
+          if (idx != -1 && idx + 1 < segments.length) {
+            slug = segments.sublist(idx + 1).join('/');
+          } else {
+            slug = segments.last;
+          }
+        }
+      }
+    } catch (_) {
+      // ignore parsing errors and use original slug
+    }
+
+    // Ensure slug is URL-encoded so special characters don't break the request
+    final encodedSlug = Uri.encodeComponent(slug);
+
+    final response = await _apiClient.get(ApiConstants.getProductById(encodedSlug));
 
     if (response.isSuccess && response.data != null) {
       final responseData = response.data as Map<String, dynamic>;

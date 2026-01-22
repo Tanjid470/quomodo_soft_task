@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/product_model.dart';
 import '../../data/repositories/product_repository.dart';
 import 'product_event.dart';
 import 'product_state.dart';
@@ -68,19 +69,40 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         return;
       }
       emit(ProductSearching());
-      
-      // Search functionality not available in API, filtering locally
-      final allProducts = await repository.getProducts();
-      final filteredProducts = allProducts
-          .where((product) =>
-              product.name.toLowerCase().contains(event.keyword.toLowerCase()) ||
-              product.description.toLowerCase().contains(event.keyword.toLowerCase()))
+
+      // If user pasted a full product URL, extract slug part
+      String keyword = event.keyword.trim();
+      try {
+        final uri = Uri.tryParse(keyword);
+        if (uri != null && uri.path.isNotEmpty && keyword.contains('/product/')) {
+          final segments = uri.path.split('/');
+          final idx = segments.indexWhere((s) => s == 'product');
+          if (idx != -1 && idx + 1 < segments.length) {
+            keyword = segments.sublist(idx + 1).join('/');
+          } else {
+            keyword = segments.last;
+          }
+        }
+      } catch (_) {}
+
+      // Reuse already-loaded products if available to avoid extra network call
+      final List<ProductModel> allProducts = state is ProductLoaded
+          ? List<ProductModel>.from((state as ProductLoaded).products)
+          : await repository.getProducts();
+
+      final List<ProductModel> filteredProducts = allProducts
+          .where((product) {
+            final q = keyword.toLowerCase();
+            return product.name.toLowerCase().contains(q) ||
+                product.description.toLowerCase().contains(q) ||
+                product.slug.toLowerCase().contains(q);
+          })
           .toList();
-      
-      emit(ProductSearchLoaded(
-        products: filteredProducts,
-        keyword: event.keyword,
-      ));
+
+       emit(ProductSearchLoaded(
+         products: filteredProducts,
+         keyword: event.keyword,
+       ));
     } catch (e) {
       emit(ProductError(e.toString()));
     }

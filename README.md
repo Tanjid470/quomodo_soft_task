@@ -89,25 +89,7 @@ final apiClient = ApiClient();
 final response = await apiClient.get('/products');
 ```
 
-### 2. BLoC State Management
-
-**Events:**
-- `LoadProducts` - Load products with pagination
-- `LoadProductDetail` - Load single product details
-- `SearchProducts` - Search products by keyword
-- `FilterProductsByCategory` - Filter by category
-- `LoadCategories` - Load all categories
-- `ClearSearch` - Clear search and reload products
-
-**States:**
-- `ProductInitial` - Initial state
-- `ProductLoading` - Loading state
-- `ProductLoaded` - Products loaded successfully
-- `ProductDetailLoaded` - Product detail loaded
-- `ProductSearchLoaded` - Search results loaded
-- `ProductError` - Error state
-
-### 3. API Endpoints
+### 2. API Endpoints
 
 Base URL: `https://mamunuiux.com/flutter_task/api`
 
@@ -171,27 +153,6 @@ dependencies:
 ✅ Image caching for performance  
 ✅ Reusable widgets  
 
-## API Integration Examples
-
-### Get Products
-```dart
-context.read<ProductBloc>().add(const LoadProducts(page: 1, limit: 20));
-```
-
-### Search Products
-```dart
-context.read<ProductBloc>().add(SearchProducts('Samsung'));
-```
-
-### Filter by Category
-```dart
-context.read<ProductBloc>().add(FilterProductsByCategory(categoryId));
-```
-
-### Load Product Details
-```dart
-context.read<ProductBloc>().add(LoadProductDetail(productId));
-```
 
 ## UI/UX Features
 

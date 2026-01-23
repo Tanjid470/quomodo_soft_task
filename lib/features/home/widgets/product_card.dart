@@ -27,14 +27,14 @@ class ProductCard extends StatelessWidget {
         );
       },
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: const Color.fromRGBO(128, 128, 128, 0.1),
+              color: Color.fromRGBO(128, 128, 128, 0.1),
               spreadRadius: 1,
               blurRadius: 4,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2),
             ),
           ],
         ),
@@ -95,7 +95,7 @@ class ProductCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     // Rating
                     Row(

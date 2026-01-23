@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task/core/const/app_images.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../products/data/models/category_model.dart';
 import '../../products/data/models/product_model.dart';
@@ -293,35 +294,97 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      // Bottom bar wrapped in a white container with a subtle top shadow
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            // Negative offset makes the shadow appear above the bar
+            BoxShadow(
+              color: Color.fromRGBO(128, 128, 128, 0.22),
+              offset: const Offset(0, -4),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        // SafeArea keeps the bar above system UI (gestures/indicator)
+        child: SafeArea(
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: Colors.grey,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            items:  [
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  AppImages.homeIcon,
+                  width: 24,
+                  height: 24,
+                ),
+                activeIcon: Image.asset(
+                  AppImages.homeIcon,
+                  width: 24,
+                  height: 24,
+                  color: AppColors.primary,
+                ),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  AppImages.messageIcon,
+                  width: 24,
+                  height: 24,
+                ),
+                activeIcon: Image.asset(
+                  AppImages.messageIcon,
+                  width: 24,
+                  height: 24,
+                  color: AppColors.primary,
+                ),
+                label: 'Messages',
+              ),
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  AppImages.orderIcon,
+                  width: 24,
+                  height: 24,
+                ),
+                activeIcon: Image.asset(
+                  AppImages.orderIcon,
+                  width: 24,
+                  height: 24,
+                  color: AppColors.primary,
+                ),
+                label: 'Order',
+              ),
+
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  AppImages.profileIcon,
+                  width: 24,
+                  height: 24,
+                ),
+                activeIcon: Image.asset(
+                  AppImages.profileIcon,
+                  width: 24,
+                  height: 24,
+                  color: AppColors.primary,
+                ),
+                label: 'Profile',
+              ),
+
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Message',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag_outlined),
-            label: 'Order',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
+        ),
       ),
+
     );
   }
 

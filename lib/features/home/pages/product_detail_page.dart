@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:task/core/network/api_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../products/presentation/bloc/product_bloc.dart';
 import '../../products/presentation/bloc/product_event.dart';
@@ -29,6 +30,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
+      // Using WillPopScope for broad SDK compatibility; PopScope (Flutter 3.12+) is preferred but
+      // may not be available on older SDKs. Silence the deprecation warning for now.
+      // ignore: deprecated_member_use
       onWillPop: () async {
         // When user navigates back (system or gesture), reload products on home
         context.read<ProductBloc>().add(const LoadProducts());
@@ -122,19 +126,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           // Main Image
                           Container(
                             color: AppColors.primaryLight,
-                            padding: const EdgeInsets.all(24),
+                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                             child: Center(
-                              child: CachedNetworkImage(
-                                imageUrl: product.images.isNotEmpty
-                                    ? "https://mamunuiux.com/flutter_task/${product.images[_selectedImageIndex]}"
-                                    : '',
-                                height: 250,
-                                fit: BoxFit.contain,
-                                placeholder: (context, url) =>
-                                    Center(child: ShimmerLoader.rect(height: 250, width: 250)),
-                                errorWidget: (context, url, error) => const Icon(
-                                  Icons.image_not_supported,
-                                  size: 80,
+                              child: SizedBox(
+                                height: 360,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  switchInCurve: Curves.easeInOut,
+                                  child: CachedNetworkImage(
+                                    key: ValueKey(product.images.isNotEmpty ? product.images[_selectedImageIndex] : 'empty'),
+                                    imageUrl: product.images.isNotEmpty
+                                        ? ApiConstants.getImageUrl(product.images[_selectedImageIndex])
+                                        : '',
+                                    height: 360,
+                                    fit: BoxFit.contain,
+                                    placeholder: (context, url) => Center(child: ShimmerLoader.rect(height: 320, width: 320)),
+                                    errorWidget: (context, url, error) => const Icon(
+                                      Icons.image_not_supported,
+                                      size: 80,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -143,39 +154,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           // Thumbnail Images
                           if (product.images.length > 1)
                             Container(
-                              color: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              height: 80,
+                              color: AppColors.primaryLight,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              height: 96,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: product.images.length,
                                 itemBuilder: (context, index) {
+                                  final isSelected = _selectedImageIndex == index;
                                   return GestureDetector(
                                     onTap: () {
                                       setState(() {
                                         _selectedImageIndex = index;
                                       });
                                     },
-                                    child: Container(
-                                      width: 60,
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
                                       margin: const EdgeInsets.only(right: 12),
+                                      width: isSelected ? 72 : 64,
                                       decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: _selectedImageIndex == index
-                                              ? AppColors.primary
-                                              : Colors.grey[300]!,
-                                          width: 2,
-                                        ),
+                                        color: Colors.white,
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: isSelected ? AppColors.primary : Colors.transparent,
+                                          width: isSelected ? 3 : 0,
+                                        ),
+                                        boxShadow: isSelected
+                                            ? [const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.08), blurRadius: 10, offset: Offset(0, 4))]
+                                            : null,
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
                                         child: CachedNetworkImage(
-                                          imageUrl: product.images[index],
+                                          imageUrl: ApiConstants.getImageUrl(product.images[index]),
                                           fit: BoxFit.cover,
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.image),
+                                          placeholder: (context, url) => Center(child: ShimmerLoader.rect(height: 64, width: 64)),
+                                          errorWidget: (context, url, error) => const Icon(Icons.image),
                                         ),
                                       ),
                                     ),
@@ -264,17 +278,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       (index) => Icon(
                                         index < product.rating.floor()
                                             ? Icons.star
-                                            : Icons.star_border,
-                                        size: 20,
+                                            : Icons.star,
+                                        size: 24,
                                         color: AppColors.yellow,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '${product.totalSold} Sold',
+                                      '${product.totalSold} Reviews',
                                       style: const TextStyle(
                                         fontSize: 14,
-                                        color: Colors.grey,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                   ],
@@ -317,6 +331,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
+                                // Description
+
                               ],
                             ),
                           ),
@@ -411,7 +427,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.black87,
                       ),
                     ),
                   ),

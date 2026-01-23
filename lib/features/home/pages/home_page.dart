@@ -104,7 +104,8 @@ class _HomePageState extends State<HomePage> {
                     // use cached products and categories
                     // create a faux ProductLoaded view by setting local lists below
                   } else if (isLoadingState) {
-                    return Center(child: ShimmerLoader.rect(width: double.infinity, height: 300));
+                    // First-time load: show a simple spinner rather than the shimmer loader
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (state is ProductError) {

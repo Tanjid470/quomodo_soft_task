@@ -43,7 +43,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         body: BlocBuilder<ProductBloc, ProductState>(
           builder: (context, state) {
             if (state is ProductLoading || state is ProductDetailLoading) {
-              return Center(child: ShimmerLoader.rect(width: double.infinity, height: 200));
+              // First-time product detail load: show a spinner instead of shimmer
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (state is ProductError) {
